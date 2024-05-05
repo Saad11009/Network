@@ -74,20 +74,29 @@ public class TemporaryNode implements TemporaryNodeInterface {
             String getRequest = "GET? " + key.length() + "\n" + key + "\n";
             outStrm.write(getRequest.getBytes());
 
-            String getResponse = reader.readLine();
-            if (getResponse != null && getResponse.startsWith("VALUE")) {
+            StringBuilder responseBuilder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                responseBuilder.append(line).append("\n");
+                if (line.isEmpty()) {
+                    break;
+                }
+            }
+
+            String getResponse = responseBuilder.toString().trim();
+            if (getResponse.startsWith("VALUE")) {
                 String[] parts = getResponse.split(" ");
                 int valueLength = Integer.parseInt(parts[1]);
                 StringBuilder valueBuilder = new StringBuilder();
                 for (int i = 0; i < valueLength; i++) {
                     valueBuilder.append(reader.readLine()).append("\n");
                 }
-                return valueBuilder.toString();
-            } else if (getResponse != null && getResponse.equals("NOPE")) {
+                return valueBuilder.toString().trim();
+            } else if (getResponse.equals("NOPE")) {
                 System.out.println("Key not found in the network.");
                 return null;
             } else {
-                System.out.println("Error GET?");
+                System.out.println("Error in GET response: " + getResponse);
                 return null;
             }
 
@@ -96,6 +105,5 @@ public class TemporaryNode implements TemporaryNodeInterface {
             return null;
         }
     }
-
-
 }
+
